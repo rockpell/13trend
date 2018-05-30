@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<!-- saved from url=(0042)http://bootstrapk.com/examples/jumbotron/# -->
+<html lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="rockpell">
+    <link rel="icon" href="./no_title.png">
+    <title>13Trend</title>
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand">Trend</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li class="active">
+                        <a href="#">Real Time</a>
+                    </li>
+                    <li>
+                        <a href="Serach.html">Serach</a>
+                    </li>
+                    <li>
+                        <a href="Alarm.html">Alarm</a>
+                    </li>
+                </ul>
+                <form class="navbar-form navbar-right">
+                    <div class="form-group">
+                        <input type="text" placeholder="ID" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-success">Sign in</button>
+                    <a class="btn btn-success" href="./SignUp.html" role="button">Sign up</a>
+                </form>
+            </div>
+            <!--/.navbar-collapse -->
+        </div>
+    </nav>
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+        <div class="container">
+            <h1>Real Time Query</h1>
+        </div>
+    </div>
+    <div class="container">
+        <!-- Example row of columns -->
+        <div div class="center-block" style="width:600px;">
+            <svg width="600" height="600" font-family="sans-serif" font-size="12" text-anchor="middle"></svg>
+        </div>
+        <hr>
+        <footer>
+            <p>© 13Trend</p>
+        </footer>
+    </div>
+    <!-- /container -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script>
+
+    var svg = d3.select("svg"),
+        width = +svg.attr("width"),
+        height = +svg.attr("height");
+
+    var format = d3.format(",d");
+
+    var color = d3.scaleOrdinal(d3.schemeCategory20c);
+
+    var pack = d3.pack()
+        .size([width, height])
+        .padding(1.5);
+
+    d3.csv("./t1.csv", function(d) {
+      d.value = +d.value;
+      if (d.value) return d;
+    }, function(error, classes) {
+      if (error) throw error;
+
+      var root = d3.hierarchy({children: classes})
+          .sum(function(d) { return d.value; })
+          .each(function(d) {
+            if (id = d.data.id) {
+              var id, i = id.lastIndexOf(".");
+              d.id = id;
+              d.package = id.slice(0, i);
+              d.class = id.slice(i + 1);
+            }
+          });
+
+      var node = svg.selectAll(".node")
+        .data(pack(root).leaves())
+        .enter().append("g")
+          .attr("class", "node")
+          .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+      node.append("circle")
+          .attr("id", function(d) { return d.id; })
+          .attr("r", function(d) { return d.r; })
+          .style("fill", function(d) { return color(d.package); });
+
+
+      node.append("clipPath")
+          .attr("id", function(d) { return "clip-" + d.id; })
+        .append("use")
+          .attr("xlink:href", function(d) { return "#" + d.id; });
+
+      node.append("text")
+          .attr("clip-path", function(d) { return "url(#clip-" + d.id + ")"; })
+        .selectAll("tspan")
+        .data(function(d) { return d.class.split(/(?=[A-Z][^A-Z])/g); })
+        .enter().append("tspan")
+          .attr("x", 0)
+          .attr("y", function(d, i, nodes) { return 13 + (i - nodes.length / 2 - 0.5) * 10; })
+          .text(function(d) { return d; });
+
+      node.append("title")
+          .text(function(d) { return d.id + "\n" + format(d.value); });
+    });
+
+    </script>
+</body>
+
+</html>
