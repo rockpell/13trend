@@ -93,7 +93,7 @@ app.post('/realIn', function(request, response){
 	console.log(request.body);
 	const data = {
 		logOn : true,
-		name : "rockpell"
+		name : request.body.userId,
 	}
 	response.render('main', data, function(err, html){
 		response.send(html);
@@ -121,7 +121,7 @@ app.post('/searchIn', function(request, response){
 	var testData = [];
 	const data = {
 		logOn : true,
-		name : "rockpell",
+		name : request.body.userId,
 		datas : testData
 	}
 	response.render('search', data, function(err, html){
@@ -133,7 +133,7 @@ app.post('/searchRequest', function(request, response){
 	console.log(request.body);
 	console.log("searchRequest");
 	var testData = [];
-	RequestSerach(request.body.searchText, testData, function(){
+	RequestSerach(request.body, testData, function(){
 		const data = {
 			logOn : false,
 			name : "rockpell",
@@ -149,14 +149,15 @@ app.post('/searchRequestIn', function(request, response){
 	console.log(request.body);
 	console.log("searchRequest");
 	var testData = [];
-	RequestSerach(request.body.searchText);
-	const data = {
-		logOn : true,
-		name : "rockpell",
-		datas : testData
-	}
-	response.render('search', data, function(err, html){
-		response.send(html);
+	RequestSerach(request.body, testData, function(){
+		const data = {
+			logOn : true,
+			name : "rockpell",
+			datas : testData
+		}
+		response.render('search', data, function(err, html){
+			response.send(html);
+		});
 	});
 })
 
@@ -173,7 +174,7 @@ app.post('/alarm', function(request, response){
 app.post('/alarmIn', function(request, response){
 	const data = {
 		logOn : true,
-		name : "this is text"
+		name : request.body.userId
 	}
 	response.render('Alarm', data, function(err, html){
 		response.send(html);
@@ -229,14 +230,14 @@ function Scraping(method){
 
 function RequestSerach(requestText, outputData, callback){
 	var request_body = {
-	    "startDate": "2018-05-01",
-	    "endDate": "2018-06-01",
+	    "startDate": requestText.startDate,
+	    "endDate": requestText.endDate,
 	    "timeUnit": "week", // data, week, month
 	    "keywordGroups": [
 	        {
-	            "groupName": requestText,
+	            "groupName": requestText.searchText,
 	            "keywords": [
-	                requestText
+	                requestText.searchText
 	            ]
 	        }
 	    ],

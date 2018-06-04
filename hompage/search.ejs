@@ -72,17 +72,24 @@
     <div class="container">
         <!-- Example row of columns -->
         <% if(logOn) {%>
-        <form class="navbar-form navbar-middle" action="/searchRequestIn" method="POST">
+        <form class="form" action="/searchRequestIn" method="POST">
         <% }%>
         <% if(!logOn) {%>
-        <form class="navbar-form navbar-middle" action="/searchRequest" method="POST">
+        <form class="form" action="/searchRequest" method="POST">
         <% }%>
-            <div class="input-group">
+            <div class = "form-group">
+                <lable for="exampleStartDate">Start Date</lable>
+                <input class = "form-control" id="startDate" type="date" name="startDate" value="2018-05-01">
+            </div>
+            <div class = "form-group">
+                <lable for="exampleEndDate">End Date</lable>
+                <input class = "form-control" id="endDate" type="date" name="endDate" value="2018-06-01">
+            </div>
             <div class="form-group">
                 <input class = "form-control" type="text" placeholder = "검색어입력" id="searchText" name="searchText">
             </div>
             <button type="submit" class = "btn btn=secondary" type = "button">찾기</button>
-            </div>
+            
         </form>
         
         <br><br>
@@ -95,6 +102,7 @@
         </footer>
     </div>
     <!-- /container -->
+    
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="https://d3js.org/d3.v4.min.js"></script>
@@ -116,7 +124,6 @@
     <script>
 // var dataset = [{x:'A', y:9 }, {x:'B', y:19}, {x:'C', y:29}, {x:'D', y:39}, {x:'E', y:29}, {x:'F', y:19}, {x:'G', y:9 },{x: 'H', y:3}, {x: 'ZZ', y:48}, {x: 'ZA', y:50}, {x: 'ZB', y:51}, {x: 'ZC', y:52}, {x: 'ZD', y:53}, {x: 'ZF', y:83}];
 var dataset = <%- JSON.stringify(datas)%>;
-console.log(dataset);
 var svg = d3.select("svg");
 var width  = parseInt(svg.style("width"), 10)-30;
 var height = parseInt(svg.style("height"), 10)-20;
