@@ -34,7 +34,9 @@
                         <a href="#">Real Time</a>
                     </li>
                     <li>
-                        <a href="Serach.html">Serach</a>
+                        <!-- <a href="Search.html">Search</a> -->
+                        <a onclick="RequestSerachEJS();">Search</a>
+                        <!-- <button type="button" class="btn btn-default">Search</button> -->
                     </li>
                     <li>
                         <a href="Alarm.html">Alarm</a>
@@ -134,6 +136,10 @@
       node.append("title")
           .text(function(d) { return d.id + "\n" + format(d.value); });
     });
+
+    function RequestSerachEJS(){
+      $.post("/search", {name : "who"});
+    }
 
     </script>
 </body>
