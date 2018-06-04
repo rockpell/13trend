@@ -14,6 +14,9 @@ var server = app.listen(3000, function(){
     console.log("Express server has started on port 3000")
 })
 
+var logOnId = "";
+var isLogOn = false;
+
 app.use(express.static(__dirname+'/hompage'));
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
@@ -26,8 +29,8 @@ app.get('/', function(request, response) {
 		ToCsv(text, function(){
 			// response.sendFile(__dirname + '/hompage/main.html');
 			const data = {
-				logOn : false,
-				name : "first"
+				logOn : isLogOn,
+				name : logOnId
 			}
 			response.render('main', data, function(err, html){
 				response.send(html);
@@ -37,16 +40,12 @@ app.get('/', function(request, response) {
 });
 
 app.get('/real', function(request, response){
-	const data = {
-		logOn : false,
-		name : "rockpell"
-	}
 	Scraping(function(text){
 		ToCsv(text, function(){
 			// response.sendFile(__dirname + '/hompage/main.html');
 			const data = {
-				logOn : false,
-				name : "first"
+				logOn : isLogOn,
+				name : logOnId
 			}
 			response.render('main', data, function(err, html){
 				response.send(html);
@@ -59,8 +58,8 @@ app.get('/real', function(request, response){
 app.get('/search', function(request, response){
 	var testData = [];
 	const data = {
-		logOn : false,
-		name : "rockpell",
+		logOn : isLogOn,
+		name : logOnId,
 		datas : testData
 	}
 	response.render('search', data, function(err, html){
@@ -70,10 +69,21 @@ app.get('/search', function(request, response){
 
 app.get('/alarm', function(request, response){
 	const data = {
-		logOn : false,
-		name : "rockpell"
+		logOn : isLogOn,
+		name : logOnId
 	}
 	response.render('alarm', data, function(err, html){
+		response.send(html);
+	});
+});
+
+app.post('/signup', function(request, response){
+	console.log("signup");
+	const data = {
+		logOn : isLogOn,
+		name : logOnId
+	}
+	response.render('main', data, function(err, html){
 		response.send(html);
 	});
 });
@@ -81,8 +91,8 @@ app.get('/alarm', function(request, response){
 app.post('/real', function(request, response){
 	console.log("real");
 	const data = {
-		logOn : false,
-		name : "rockpell"
+		logOn : isLogOn,
+		name : logOnId
 	}
 	response.render('main', data, function(err, html){
 		response.send(html);
@@ -90,10 +100,27 @@ app.post('/real', function(request, response){
 })
 
 app.post('/realIn', function(request, response){
+	console.log("realIn");
 	console.log(request.body);
+	logOnId = request.body.userId;
+	isLogOn = true;
 	const data = {
-		logOn : true,
-		name : request.body.userId,
+		logOn : isLogOn,
+		name : logOnId,
+	}
+	response.render('main', data, function(err, html){
+		response.send(html);
+	});
+})
+
+app.post('/realOut', function(request, response){
+	console.log("realOut");
+	console.log(request.body);
+	logOnId = request.body.userId;
+	isLogOn = false;
+	const data = {
+		logOn : isLogOn,
+		name : logOnId,
 	}
 	response.render('main', data, function(err, html){
 		response.send(html);
@@ -105,8 +132,8 @@ app.post('/search', function(request, response){
 	console.log("search");
 	var testData = [];
 	const data = {
-		logOn : false,
-		name : "rockpell",
+		logOn : isLogOn,
+		name : logOnId,
 		datas : testData
 	}
 	response.render('search', data, function(err, html){
@@ -118,10 +145,28 @@ app.post('/search', function(request, response){
 app.post('/searchIn', function(request, response){
 	console.log(request.body);
 	console.log("searchIn");
+	logOnId = request.body.userId;
+	isLogOn = true;
 	var testData = [];
 	const data = {
-		logOn : true,
-		name : request.body.userId,
+		logOn : isLogOn,
+		name : logOnId,
+		datas : testData
+	}
+	response.render('search', data, function(err, html){
+		response.send(html);
+	});
+})
+
+app.post('/searchOut', function(request, response){
+	console.log(request.body);
+	console.log("searchOut");
+	logOnId = request.body.userId;
+	isLogOn = false;
+	var testData = [];
+	const data = {
+		logOn : isLogOn,
+		name : logOnId,
 		datas : testData
 	}
 	response.render('search', data, function(err, html){
@@ -135,8 +180,8 @@ app.post('/searchRequest', function(request, response){
 	var testData = [];
 	RequestSerach(request.body, testData, function(){
 		const data = {
-			logOn : false,
-			name : "rockpell",
+			logOn : isLogOn,
+			name : logOnId,
 			datas : testData
 		}
 		response.render('search', data, function(err, html){
@@ -151,8 +196,8 @@ app.post('/searchRequestIn', function(request, response){
 	var testData = [];
 	RequestSerach(request.body, testData, function(){
 		const data = {
-			logOn : true,
-			name : "rockpell",
+			logOn : isLogOn,
+			name : logOnId,
 			datas : testData
 		}
 		response.render('search', data, function(err, html){
@@ -163,8 +208,8 @@ app.post('/searchRequestIn', function(request, response){
 
 app.post('/alarm', function(request, response){
 	const data = {
-		logOn : false,
-		name : "this is text"
+		logOn : isLogOn,
+		name : logOnId
 	}
 	response.render('Alarm', data, function(err, html){
 		response.send(html);
@@ -172,9 +217,23 @@ app.post('/alarm', function(request, response){
 })
 
 app.post('/alarmIn', function(request, response){
+	logOnId = request.body.userId;
+	isLogOn = true;
 	const data = {
-		logOn : true,
-		name : request.body.userId
+		logOn : isLogOn,
+		name : logOnId
+	}
+	response.render('Alarm', data, function(err, html){
+		response.send(html);
+	});
+})
+
+app.post('/alarmOut', function(request, response){
+	logOnId = request.body.userId;
+	isLogOn = false;
+	const data = {
+		logOn : isLogOn,
+		name : logOnId
 	}
 	response.render('Alarm', data, function(err, html){
 		response.send(html);
