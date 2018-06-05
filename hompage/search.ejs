@@ -40,7 +40,7 @@
                     </li>
                 </ul>
                 <% if(!logOn) {%>
-                <form class="navbar-form navbar-right" action="/searchIn" method="POST">
+                <form class="navbar-form navbar-right" action="/signIn" method="POST">
                     <div class="form-group">
                         <input type="text" placeholder="ID" class="form-control" id="userId" name="userId">
                     </div>
@@ -71,12 +71,7 @@
     </div>
     <div class="container">
         <!-- Example row of columns -->
-        <% if(logOn) {%>
-        <form class="form" action="/searchRequestIn" method="POST">
-        <% }%>
-        <% if(!logOn) {%>
         <form class="form" action="/searchRequest" method="POST">
-        <% }%>
             <div class = "form-group">
                 <lable for="exampleStartDate">Start Date</lable>
                 <input class = "form-control" id="startDate" type="date" name="startDate" value="2018-05-01">

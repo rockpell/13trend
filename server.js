@@ -14,8 +14,20 @@ var server = app.listen(3000, function(){
     console.log("Express server has started on port 3000")
 })
 
+var mysql      = require('mysql');
+var connection = mysql.createConnection({
+  host     : 'localhost',
+  user     : 'root',
+  password : '5427',
+  database : 'mydb',
+  port : 3306,
+  charset : 'utf8'
+});
+
 var logOnId = "";
 var isLogOn = false;
+
+connection.connect();
 
 app.use(express.static(__dirname+'/hompage'));
 app.use(bodyParser.urlencoded({extended:true}));
@@ -77,8 +89,10 @@ app.get('/alarm', function(request, response){
 	});
 });
 
-app.post('/signup', function(request, response){
-	console.log("signup");
+app.post('/signUp', function(request, response){
+	console.log("signUp");
+	console.log(request.body);
+	SignUpQuery(request.body.inputId, request.body.inputPassword, request.body.inputEmail);
 	const data = {
 		logOn : isLogOn,
 		name : logOnId
@@ -86,6 +100,27 @@ app.post('/signup', function(request, response){
 	response.render('main', data, function(err, html){
 		response.send(html);
 	});
+});
+
+app.post('/signIn', function(request, response){
+	console.log("signIn");
+	console.log(request.body);
+	SignInQuery(request.body.userId, request.body.userPassword, function(isSuccess){
+		const data = {
+			logOn : isSuccess,
+			name : request.body.userId
+		}
+		isLogOn = isSuccess;
+		logOnId = request.body.userId;
+		response.render('main', data, function(err, html){
+			
+			if(!isSuccess)
+				// response.send('<script type="text/javascript">alert("로그인 실패");</script>');
+				console.log("로그인 실패");
+			response.send(html);
+		});
+	});
+	
 });
 
 app.post('/real', function(request, response){
@@ -99,24 +134,9 @@ app.post('/real', function(request, response){
 	});
 })
 
-app.post('/realIn', function(request, response){
-	console.log("realIn");
-	console.log(request.body);
-	logOnId = request.body.userId;
-	isLogOn = true;
-	const data = {
-		logOn : isLogOn,
-		name : logOnId,
-	}
-	response.render('main', data, function(err, html){
-		response.send(html);
-	});
-})
-
 app.post('/realOut', function(request, response){
 	console.log("realOut");
 	console.log(request.body);
-	logOnId = request.body.userId;
 	isLogOn = false;
 	const data = {
 		logOn : isLogOn,
@@ -142,26 +162,9 @@ app.post('/search', function(request, response){
 	console.log("render search");
 })
 
-app.post('/searchIn', function(request, response){
-	console.log(request.body);
-	console.log("searchIn");
-	logOnId = request.body.userId;
-	isLogOn = true;
-	var testData = [];
-	const data = {
-		logOn : isLogOn,
-		name : logOnId,
-		datas : testData
-	}
-	response.render('search', data, function(err, html){
-		response.send(html);
-	});
-})
-
 app.post('/searchOut', function(request, response){
 	console.log(request.body);
 	console.log("searchOut");
-	logOnId = request.body.userId;
 	isLogOn = false;
 	var testData = [];
 	const data = {
@@ -190,22 +193,6 @@ app.post('/searchRequest', function(request, response){
 	});
 })
 
-app.post('/searchRequestIn', function(request, response){
-	console.log(request.body);
-	console.log("searchRequest");
-	var testData = [];
-	RequestSerach(request.body, testData, function(){
-		const data = {
-			logOn : isLogOn,
-			name : logOnId,
-			datas : testData
-		}
-		response.render('search', data, function(err, html){
-			response.send(html);
-		});
-	});
-})
-
 app.post('/alarm', function(request, response){
 	const data = {
 		logOn : isLogOn,
@@ -216,20 +203,7 @@ app.post('/alarm', function(request, response){
 	});
 })
 
-app.post('/alarmIn', function(request, response){
-	logOnId = request.body.userId;
-	isLogOn = true;
-	const data = {
-		logOn : isLogOn,
-		name : logOnId
-	}
-	response.render('Alarm', data, function(err, html){
-		response.send(html);
-	});
-})
-
 app.post('/alarmOut', function(request, response){
-	logOnId = request.body.userId;
 	isLogOn = false;
 	const data = {
 		logOn : isLogOn,
@@ -239,6 +213,7 @@ app.post('/alarmOut', function(request, response){
 		response.send(html);
 	});
 })
+
 
 function ToCsv(csvText, method){
 	fs.writeFile('./hompage/t1.csv', csvText, function(err){
@@ -325,4 +300,38 @@ function RequestSerach(requestText, outputData, callback){
         }
         callback();
     });
+}
+
+function QuerySend(){
+	// var sqlQuery = "CREATE TABLE user(id varchar(20), password varchar(20), email varchar(30), word varchar(40), period INT, PRIMARY KEY(id))";
+	// var sqlQuery = "INSERT INTO user (id, password, email) VALUES ('woodpell', '1234', 'aythffk@gmail.com')";
+	// var sqlQuery = "UPDATE user SET word='아주긴 문자열이 필요한데 뭐가 좋을까', period=10 WHERE id='woodpell';";
+	var sqlQuery = "SELECT * FROM user;"
+	// delete from 테이블명  [where 검색조건] ; 	 
+	connection.query(sqlQuery, function (err, result) {
+	    if (err) throw err;
+	    console.log(result);
+	});
+}
+
+function SignUpQuery(id, password, email){
+	var sqlQuery = "INSERT INTO user (id, password, email) VALUES ('" + id + "', '" + password + "', '" + email + "')";
+	connection.query(sqlQuery, function (err, result) {
+	    if (err) throw err;
+	    console.log(result);
+	});
+}
+
+function SignInQuery(id, password, callback){
+	var sqlQuery = "SELECT id, password FROM user WHERE id = '" + id + "' AND password = '" + password + "';";
+	connection.query(sqlQuery, function (err, result) {
+	    if (err) throw err;
+	    console.log(result);
+	    console.log(Object.keys(result).length);
+	    if(Object.keys(result).length > 0){
+	    	callback(true);
+	    } else {
+	    	callback(false);
+	    }
+	});
 }
