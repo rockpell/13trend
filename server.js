@@ -80,13 +80,31 @@ app.get('/search', function(request, response){
 });
 
 app.get('/alarm', function(request, response){
-	const data = {
-		logOn : isLogOn,
-		name : logOnId
+	console.log("get alarm");
+	if(isLogOn){
+		AlarmWordConfirmQuery(logOnId, function(inputWord, inputPeriod){
+			const data = {
+				logOn : isLogOn,
+				name : logOnId,
+				word : inputWord,
+				period : inputPeriod
+			}
+			console.log("inputWord : " + inputWord + " inputPeriod : " + inputPeriod );
+			response.render('alarm', data, function(err, html){
+				response.send(html);
+			});
+		});
+	} else {
+		const data = {
+			logOn : isLogOn,
+			name : logOnId,
+			word : "",
+			period : 0
+		}
+		response.render('alarm', data, function(err, html){
+				response.send(html);
+		});
 	}
-	response.render('alarm', data, function(err, html){
-		response.send(html);
-	});
 });
 
 app.post('/signUp', function(request, response){
@@ -193,27 +211,66 @@ app.post('/searchRequest', function(request, response){
 	});
 })
 
-app.post('/alarm', function(request, response){
-	const data = {
-		logOn : isLogOn,
-		name : logOnId
-	}
-	response.render('Alarm', data, function(err, html){
-		response.send(html);
-	});
-})
+// app.post('/alarm', function(request, response){
+// 	console.log("alarm");
+// 	const data = {
+// 		logOn : isLogOn,
+// 		name : logOnId,
+// 		word : null,
+// 		period : 0
+// 	}
+// 	response.render('Alarm', data, function(err, html){
+// 		response.send(html);
+// 	});
+// })
 
 app.post('/alarmOut', function(request, response){
+	console.log("alarmOut");
 	isLogOn = false;
 	const data = {
 		logOn : isLogOn,
-		name : logOnId
+		name : logOnId,
+		word : null,
+		period : 0
 	}
 	response.render('Alarm', data, function(err, html){
 		response.send(html);
 	});
 })
 
+app.post('/alarmAdd', function(request, response){
+	console.log("alarmAdd");
+	console.log(request.body);
+	var periodToint = Number(request.body.inputPeriod.substring(0, request.body.inputPeriod.length - 1));
+	const data = {
+		logOn : isLogOn,
+		name : logOnId,
+		word : request.body.inputWord,
+		period : periodToint
+	}
+	AlarmAddQuery(logOnId, request.body.inputWord, request.body.inputPeriod, function(){
+		response.render('Alarm', data, function(err, html){
+			response.send(html);
+		});
+	});
+	
+});
+
+app.post('/alarmRemove', function(request, response){
+	console.log("alarmRemove");
+	console.log(request.body);
+	const data = {
+		logOn : isLogOn,
+		name : logOnId,
+		word : null,
+		period : 0
+	}
+	AlarmWordDeleteQuery(logOnId, function(){
+		response.render('Alarm', data, function(err, html){
+			response.send(html);
+		});
+	})
+});
 
 function ToCsv(csvText, method){
 	fs.writeFile('./hompage/t1.csv', csvText, function(err){
@@ -333,5 +390,35 @@ function SignInQuery(id, password, callback){
 	    } else {
 	    	callback(false);
 	    }
+	});
+}
+
+function AlarmAddQuery(id, word, period, callback){
+	var periodToint = period.substring(0, period.length - 1);
+	periodToint = Number(periodToint);
+
+	var sqlQuery = "UPDATE user SET word='" + word + "', period=" + periodToint +" WHERE id='" + id + "';";
+	connection.query(sqlQuery, function (err, result) {
+	    if (err) throw err;
+	    console.log(result);
+	    callback();
+	});
+}
+
+function AlarmWordConfirmQuery(id, callback){
+	var sqlQuery = "SELECT word, period FROM user WHERE id = '" + id + "';";
+	connection.query(sqlQuery, function (err, result) {
+	    if (err) throw err;
+	    console.log(result);
+	    callback(result[0].word, result[0].period);
+	});
+}
+
+function AlarmWordDeleteQuery(id, callback){
+	var sqlQuery = "UPDATE user SET word=NULL, period=NULL WHERE id= '" + id + "';";
+	connection.query(sqlQuery, function (err, result) {
+	    if (err) throw err;
+	    console.log(result);
+	    callback();
 	});
 }

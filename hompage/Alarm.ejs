@@ -72,7 +72,44 @@
     <div class="container">
         <!-- Example row of columns -->
         <div class="row">
+            <% if(logOn) {%>
+            <form class="form" action="/alarmAdd" method="POST">
+                <div class="form-group col-md-8">
+                    <input class = "form-control" type="text" placeholder = "등록어 입력" id="inputWord" name="inputWord">
+                </div>
+                <div class="form-group col-md-3">
+                    <select class="form-control" placeholder = "알람 주기" id="inputPeriod" name="inputPeriod">
+                      <option>5분</option>
+                      <option>10분</option>
+                      <option>30분</option>
+                      <option>60분</option>
+                      <option>120분</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class = "btn btn=secondary" type = "button">등록</button>
+                </div>
+            </form>
+            <%}%>
+            <% if(!logOn) {%>
+                <h3>로그인 후 이용해주세요</h3>
+            <%}%>
         </div>
+        <% if(period > 0){%>
+        <div class="row">
+            <form class="form" action="/alarmRemove" method="POST">
+                <div class="col-md-6">
+                </div>
+                <div class="col-md-5">
+                    <h3><span class="label label-info pull-right">등록어 : <%= word %> &emsp; 알람주기 : <%= period %>분</span></h3>
+                </div>
+                <div class="col-md-1">
+                    <br>
+                    <button type="submit" class="btn btn=secondary" type = "button">삭제</button>
+                </div>
+            </form>
+        </div>
+        <%}%>
         <hr>
         <footer>
             <p>© 13Trend</p>
