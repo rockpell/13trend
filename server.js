@@ -4,6 +4,7 @@ var fs = require('fs');
 var bodyParser = require('body-parser');
 var requestURL = require('request');
 var cheerio = require('cheerio');
+var nodemailer = require('nodemailer');
 
 var client_id = 'zP4_7yKoudLDOkOsJsgU';
 var client_secret = 'nd1Jp0tcCN';
@@ -16,16 +17,38 @@ var server = app.listen(3000, function(){
 
 var mysql      = require('mysql');
 var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'root',
-  password : '5427',
-  database : 'mydb',
-  port : 3306,
-  charset : 'utf8'
+	host     : 'localhost',
+	user     : 'root',
+	password : '5427',
+	database : 'mydb',
+	port : 3306,
+	charset : 'utf8'
 });
 
+// var connection = mysql.createConnection({
+// 	host     : '35.192.50.205',
+// 	user     : 'rockpell',
+// 	password : '5427',
+// 	database : 'mydb',
+// 	port : 3306,
+// 	charset : 'utf8'
+// });
+
+var transporter = nodemailer.createTransport({
+	service: 'gmail',
+	auth: {
+		user: 'pyg100794@gmail.com',
+		pass: 'amiga2327'
+	}
+});
+
+var searchText = null;
 var logOnId = "";
 var isLogOn = false;
+var isCheckRunning = false;
+
+var realTimeKeywordList = Array();
+var alarmUserList = Array();
 
 connection.connect();
 
@@ -36,10 +59,13 @@ app.use(bodyParser.json());
 app.set('view engine', 'ejs');
 app.set('views', './hompage');
 
+PatchWordForAlarm(function(){});
+StartCheckLoop();
+setInterval(Update, 1000);
+
 app.get('/', function(request, response) {
 	Scraping(function(text){
 		ToCsv(text, function(){
-			// response.sendFile(__dirname + '/hompage/main.html');
 			const data = {
 				logOn : isLogOn,
 				name : logOnId
@@ -54,7 +80,6 @@ app.get('/', function(request, response) {
 app.get('/real', function(request, response){
 	Scraping(function(text){
 		ToCsv(text, function(){
-			// response.sendFile(__dirname + '/hompage/main.html');
 			const data = {
 				logOn : isLogOn,
 				name : logOnId
@@ -69,10 +94,12 @@ app.get('/real', function(request, response){
 
 app.get('/search', function(request, response){
 	var testData = [];
+	searchText = null;
 	const data = {
 		logOn : isLogOn,
 		name : logOnId,
-		datas : testData
+		datas : testData,
+		text : searchText
 	}
 	response.render('search', data, function(err, html){
 		response.send(html);
@@ -168,11 +195,13 @@ app.post('/realOut', function(request, response){
 app.post('/search', function(request, response){
 	console.log(request.body);
 	console.log("search");
+	searchText = null;
 	var testData = [];
 	const data = {
 		logOn : isLogOn,
 		name : logOnId,
-		datas : testData
+		datas : testData,
+		text : searchText
 	}
 	response.render('search', data, function(err, html){
 		response.send(html);
@@ -184,11 +213,13 @@ app.post('/searchOut', function(request, response){
 	console.log(request.body);
 	console.log("searchOut");
 	isLogOn = false;
+	searchText = null;
 	var testData = [];
 	const data = {
 		logOn : isLogOn,
 		name : logOnId,
-		datas : testData
+		datas : testData,
+		text : searchText
 	}
 	response.render('search', data, function(err, html){
 		response.send(html);
@@ -198,31 +229,20 @@ app.post('/searchOut', function(request, response){
 app.post('/searchRequest', function(request, response){
 	console.log(request.body);
 	console.log("searchRequest");
+	searchText = request.body.searchText;
 	var testData = [];
 	RequestSerach(request.body, testData, function(){
 		const data = {
 			logOn : isLogOn,
 			name : logOnId,
-			datas : testData
+			datas : testData,
+			text : searchText
 		}
 		response.render('search', data, function(err, html){
 			response.send(html);
 		});
 	});
 })
-
-// app.post('/alarm', function(request, response){
-// 	console.log("alarm");
-// 	const data = {
-// 		logOn : isLogOn,
-// 		name : logOnId,
-// 		word : null,
-// 		period : 0
-// 	}
-// 	response.render('Alarm', data, function(err, html){
-// 		response.send(html);
-// 	});
-// })
 
 app.post('/alarmOut', function(request, response){
 	console.log("alarmOut");
@@ -233,7 +253,7 @@ app.post('/alarmOut', function(request, response){
 		word : null,
 		period : 0
 	}
-	response.render('Alarm', data, function(err, html){
+	response.render('alarm', data, function(err, html){
 		response.send(html);
 	});
 })
@@ -249,8 +269,10 @@ app.post('/alarmAdd', function(request, response){
 		period : periodToint
 	}
 	AlarmAddQuery(logOnId, request.body.inputWord, request.body.inputPeriod, function(){
-		response.render('Alarm', data, function(err, html){
+		response.render('alarm', data, function(err, html){
 			response.send(html);
+			StopCheckLoop();
+			PatchWordForAlarm(StartCheckLoop);
 		});
 	});
 	
@@ -266,21 +288,23 @@ app.post('/alarmRemove', function(request, response){
 		period : 0
 	}
 	AlarmWordDeleteQuery(logOnId, function(){
-		response.render('Alarm', data, function(err, html){
+		response.render('alarm', data, function(err, html){
 			response.send(html);
+			StopCheckLoop();
+			PatchWordForAlarm(StartCheckLoop);
 		});
 	})
 });
 
-function ToCsv(csvText, method){
+function ToCsv(csvText, callback){
 	fs.writeFile('./hompage/t1.csv', csvText, function(err){
 		if(err) throw err;
 		console.log("File write completed");
-		method();
+		callback();
 	});
 }
 
-function Scraping(method){
+function Scraping(callback){
 	var url = 'https://www.naver.com/';
 
 	var realTimeKeywords = Array();
@@ -299,13 +323,13 @@ function Scraping(method){
 		class_b.each(function(index, item){
 			if(index % 2 != 0)
 				realTimeKeywords.push($(this).text());
-			// console.log("index : " + index + " text : " + $(this).text());
-			
 		})
+		
+		realTimeKeywordList = realTimeKeywords.slice();
+
 		var temp = 5;
 		var temp2 = 0;
 		for(i = 0; i < realTimeKeywords.length; i++){
-			// console.log((i+1)+"st : " + realTimeKeywords[i]);
 			if(temp > 0) temp -= 1;
 			if(i==0){
 				temp2 = 40000;
@@ -314,9 +338,8 @@ function Scraping(method){
 			}
 			resultText += realTimeKeywords[i] + ", " + (40000+temp2 - i * (2000) + temp*3000) + "\n";
 		}
-		method(resultText);
+		callback(resultText);
 	});
-
 }
 
 function RequestSerach(requestText, outputData, callback){
@@ -350,7 +373,6 @@ function RequestSerach(requestText, outputData, callback){
     },
     function (error, response, body) {
         console.log(response.statusCode);
-        // console.log(body);
         var periodDatas = JSON.parse(body).results[0].data;
         for(var i = 0; i < Object.keys(periodDatas).length; i++){
         	outputData.push({x:periodDatas[i].period, y: periodDatas[i].ratio });
@@ -359,23 +381,11 @@ function RequestSerach(requestText, outputData, callback){
     });
 }
 
-function QuerySend(){
-	// var sqlQuery = "CREATE TABLE user(id varchar(20), password varchar(20), email varchar(30), word varchar(40), period INT, PRIMARY KEY(id))";
-	// var sqlQuery = "INSERT INTO user (id, password, email) VALUES ('woodpell', '1234', 'aythffk@gmail.com')";
-	// var sqlQuery = "UPDATE user SET word='아주긴 문자열이 필요한데 뭐가 좋을까', period=10 WHERE id='woodpell';";
-	var sqlQuery = "SELECT * FROM user;"
-	// delete from 테이블명  [where 검색조건] ; 	 
-	connection.query(sqlQuery, function (err, result) {
-	    if (err) throw err;
-	    console.log(result);
-	});
-}
-
 function SignUpQuery(id, password, email){
 	var sqlQuery = "INSERT INTO user (id, password, email) VALUES ('" + id + "', '" + password + "', '" + email + "')";
 	connection.query(sqlQuery, function (err, result) {
 	    if (err) throw err;
-	    console.log(result);
+	    // console.log(result);
 	});
 }
 
@@ -383,8 +393,7 @@ function SignInQuery(id, password, callback){
 	var sqlQuery = "SELECT id, password FROM user WHERE id = '" + id + "' AND password = '" + password + "';";
 	connection.query(sqlQuery, function (err, result) {
 	    if (err) throw err;
-	    console.log(result);
-	    console.log(Object.keys(result).length);
+	    // console.log(result);
 	    if(Object.keys(result).length > 0){
 	    	callback(true);
 	    } else {
@@ -400,7 +409,7 @@ function AlarmAddQuery(id, word, period, callback){
 	var sqlQuery = "UPDATE user SET word='" + word + "', period=" + periodToint +" WHERE id='" + id + "';";
 	connection.query(sqlQuery, function (err, result) {
 	    if (err) throw err;
-	    console.log(result);
+	    // console.log(result);
 	    callback();
 	});
 }
@@ -409,7 +418,7 @@ function AlarmWordConfirmQuery(id, callback){
 	var sqlQuery = "SELECT word, period FROM user WHERE id = '" + id + "';";
 	connection.query(sqlQuery, function (err, result) {
 	    if (err) throw err;
-	    console.log(result);
+	    // console.log(result);
 	    callback(result[0].word, result[0].period);
 	});
 }
@@ -421,4 +430,98 @@ function AlarmWordDeleteQuery(id, callback){
 	    console.log(result);
 	    callback();
 	});
+}
+
+function Update(){
+	if(isCheckRunning)
+		CheckUserListForAlram();
+}
+
+function StartCheckLoop(){
+	isCheckRunning = true;
+}
+
+function StopCheckLoop(){
+	isCheckRunning = false;
+}
+
+function CheckUserListForAlram(){
+	for(var i = 0; i < alarmUserList.length; i++){
+		alarmUserList[i].leftPeriod -= 1;
+		if(alarmUserList[i].leftPeriod <= 0){
+			var target = alarmUserList[i];
+			Scraping(function(){
+				CheckRealTimeKeywordList(target);
+			});
+			alarmUserList[i].leftPeriod = alarmUserList[i].period * 60;
+		}
+	}
+	console.log("CheckUserListForAlram");
+	// console.log(alarmUserList);
+}
+
+function CheckRealTimeKeywordList(target){
+	// console.log(target);
+	for(var i = 0; i < realTimeKeywordList.length; i++){
+		if(realTimeKeywordList[i] == target.word){
+			SendMail(target.email, target.word, (i+1) );
+			return;
+		}
+	}
+}
+
+function SendMail(userMail, wordText, rank){
+	var mailOptions = {
+		from: 'pyg100794@gmail.com',
+		to: userMail,
+		subject: "등록하신 단어가 실시간 검색 순위에 올랐습니다.",
+		text: "실시간 검색어 " + rank + " 위: " + wordText
+	};
+
+	transporter.sendMail(mailOptions, function(error, info){
+		if (error) {
+			console.log(error);
+		} else {
+			console.log('Email sent: ' + info.response);
+		}
+	});
+}
+
+function PatchWordForAlarm(callback){
+	var sqlQuery = "SELECT id, email, word, period FROM user;"
+	connection.query(sqlQuery, function (err, result) {
+	    if (err) throw err;
+	    console.log(result);
+	    for(var i = 0; i < Object.keys(result).length; i++){
+	    	var index = ContainAlarmSetting(alarmUserList, result[i]);
+      		if(result[i].period > 0){
+      			if(index == -1){
+      				alarmUserList.push({
+	      				id : result[i].id,
+	      				email : result[i].email,
+	      				word : result[i].word,
+	      				period : result[i].period,
+	      				leftPeriod : Number(result[i].period) * 60
+	      			});
+      			} else {
+      				alarmUserList[index].word = result[i].word;
+      				alarmUserList[index].period = result[i].period;
+      				alarmUserList[index].leftPeriod = result[i].period * 60;
+      			}
+      		} else {
+      			alarmUserList.splice(index, 1);
+      		}
+	    }
+	    console.log("PatchWordForAlarm");
+	    console.log(alarmUserList);
+	    callback();
+	});
+}
+
+function ContainAlarmSetting(userList, target){
+	for(var i = 0; i < Object.keys(userList).length; i++){
+		if(userList[i].id == target.id)
+			return i;
+	}
+	return -1;
 }

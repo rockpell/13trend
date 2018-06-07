@@ -42,10 +42,10 @@
                 <% if(!logOn) {%>
                 <form class="navbar-form navbar-right" action="/signIn" method="POST">
                     <div class="form-group">
-                        <input type="text" placeholder="ID" class="form-control" id="userId" name="userId">
+                        <input type="text" placeholder="ID" class="form-control" id="userId" name="userId" required="">
                     </div>
                     <div class="form-group">
-                        <input type="password" placeholder="Password" class="form-control" id="userPassword" name="userPassword">
+                        <input type="password" placeholder="Password" class="form-control" id="userPassword" name="userPassword" required="">
                     </div>
                     <button type="submit" class="btn btn-success">Sign in</button>
                     <a class="btn btn-success" href="./SignUp.html" role="button">Sign up</a>
@@ -71,7 +71,7 @@
     </div>
     <div class="container">
         <!-- Example row of columns -->
-        <div div class="center-block" style="width:600px;">
+        <div class="center-block" style="width:600px;">
             <svg width="600" height="600" font-family="sans-serif" font-size="12" text-anchor="middle"></svg>
         </div>
         <hr>
