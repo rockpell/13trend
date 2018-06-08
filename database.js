@@ -1,21 +1,21 @@
 var mysql      = require('mysql');
-var connection = mysql.createConnection({
-  host     : 'localhost',
-  user     : 'root',
-  password : '5427',
-  database : 'mydb',
-  port : 3306,
-  charset : 'utf8'
-});
-
 // var connection = mysql.createConnection({
-//   host     : '35.192.50.205',
-//   user     : 'rockpell',
+//   host     : 'localhost',
+//   user     : 'root',
 //   password : '5427',
 //   database : 'mydb',
 //   port : 3306,
 //   charset : 'utf8'
 // });
+
+var connection = mysql.createConnection({
+  host     : '35.192.50.205',
+  user     : 'rockpell',
+  password : '5427',
+  database : 'mydb',
+  port : 3306,
+  charset : 'utf8'
+});
 
 // var sqlQuery = "CREATE TABLE user(id varchar(20), password varchar(20), email varchar(30), word varchar(40), period INT, PRIMARY KEY(id))";
 // var sqlQuery = "INSERT INTO user (id, password, email) VALUES ('rockpell', '1134', 'ffk@gmail.com')";
@@ -24,6 +24,7 @@ var connection = mysql.createConnection({
 var sqlQuery = "SELECT * FROM user;"
 // var sqlQuery = "describe user;";
 // var sqlQuery = "UPDATE user SET word=NULL, period=NULL WHERE id='rockpell';"
+// var sqlQuery = "DELETE FROM user;"
 
 connection.connect();
  

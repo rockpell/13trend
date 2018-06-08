@@ -64,9 +64,14 @@
         </div>
     </nav>
     <!-- Main jumbotron for a primary marketing message or call to action -->
-    <div class="jumbotron">
+    <div class="jumbotron" id="AlarmJumbotron">
         <div class="container">
             <h1>Alarm</h1>
+            <h4>&nbsp; Mailing Service</h4>
+            <% if(logOn) {%>
+            <br>
+            <h5>&nbsp; 하나의 문장만 등록 가능합니다</h5>
+            <%}%>
         </div>
     </div>
     <div class="container">
@@ -119,6 +124,12 @@
     <!-- /container -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <style type="text/css">
+        #AlarmJumbotron{
+            margin-bottom: 0px;
+            padding-bottom: 0px;   
+        }
+    </style>
 </body>
 
 </html>

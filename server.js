@@ -1,4 +1,5 @@
 var express = require('express');
+var session = require('express-session');
 var app = express();
 var fs = require('fs');
 var bodyParser = require('body-parser');
@@ -37,14 +38,14 @@ var connection = mysql.createConnection({
 var transporter = nodemailer.createTransport({
 	service: 'gmail',
 	auth: {
-		user: 'pyg100794@gmail.com',
-		pass: 'amiga2327'
+		user: 'aythffk@gmail.com',
+		pass: 'rock0147258#'
 	}
 });
 
 var searchText = null;
-var logOnId = "";
-var isLogOn = false;
+// var logOnId = "";
+// var isLogOn = false;
 var isCheckRunning = false;
 
 var realTimeKeywordList = Array();
@@ -55,6 +56,11 @@ connection.connect();
 app.use(express.static(__dirname+'/hompage'));
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
+app.use(session({
+	secret : 'xik,mc[qw.jlkxcnmkusdbnfglksdnmflkj',
+	resave : false,
+	saveUninitialized : true
+}));
 
 app.set('view engine', 'ejs');
 app.set('views', './hompage');
@@ -64,11 +70,14 @@ StartCheckLoop();
 setInterval(Update, 1000);
 
 app.get('/', function(request, response) {
+	var isLogOn = false;
+	if(request.session.authId)
+		isLogOn = true;
 	Scraping(function(text){
 		ToCsv(text, function(){
 			const data = {
 				logOn : isLogOn,
-				name : logOnId
+				name : request.session.authId
 			}
 			response.render('main', data, function(err, html){
 				response.send(html);
@@ -78,11 +87,14 @@ app.get('/', function(request, response) {
 });
 
 app.get('/real', function(request, response){
+	var isLogOn = false;
+	if(request.session.authId)
+		isLogOn = true;
 	Scraping(function(text){
 		ToCsv(text, function(){
 			const data = {
 				logOn : isLogOn,
-				name : logOnId
+				name : request.session.authId
 			}
 			response.render('main', data, function(err, html){
 				response.send(html);
@@ -93,11 +105,14 @@ app.get('/real', function(request, response){
 });
 
 app.get('/search', function(request, response){
+	var isLogOn = false;
+	if(request.session.authId)
+		isLogOn = true;
 	var testData = [];
 	searchText = null;
 	const data = {
 		logOn : isLogOn,
-		name : logOnId,
+		name : request.session.authId,
 		datas : testData,
 		text : searchText
 	}
@@ -107,12 +122,15 @@ app.get('/search', function(request, response){
 });
 
 app.get('/alarm', function(request, response){
+	var isLogOn = false;
+	if(request.session.authId)
+		isLogOn = true;
 	console.log("get alarm");
 	if(isLogOn){
-		AlarmWordConfirmQuery(logOnId, function(inputWord, inputPeriod){
+		AlarmWordConfirmQuery(request.session.authId, function(inputWord, inputPeriod){
 			const data = {
 				logOn : isLogOn,
-				name : logOnId,
+				name : request.session.authId,
 				word : inputWord,
 				period : inputPeriod
 			}
@@ -124,7 +142,7 @@ app.get('/alarm', function(request, response){
 	} else {
 		const data = {
 			logOn : isLogOn,
-			name : logOnId,
+			name : request.session.authId,
 			word : "",
 			period : 0
 		}
@@ -135,12 +153,13 @@ app.get('/alarm', function(request, response){
 });
 
 app.post('/signUp', function(request, response){
+	var isLogOn = false;
 	console.log("signUp");
 	console.log(request.body);
 	SignUpQuery(request.body.inputId, request.body.inputPassword, request.body.inputEmail);
 	const data = {
 		logOn : isLogOn,
-		name : logOnId
+		name : request.session.authId
 	}
 	response.render('main', data, function(err, html){
 		response.send(html);
@@ -155,8 +174,12 @@ app.post('/signIn', function(request, response){
 			logOn : isSuccess,
 			name : request.body.userId
 		}
-		isLogOn = isSuccess;
-		logOnId = request.body.userId;
+		// isLogOn = isSuccess;
+		// logOnId = request.body.userId;
+		
+		request.session.authId = request.body.userId;
+		request.session.save();
+
 		response.render('main', data, function(err, html){
 			
 			if(!isSuccess)
@@ -169,10 +192,13 @@ app.post('/signIn', function(request, response){
 });
 
 app.post('/real', function(request, response){
+	var isLogOn = false;
+	if(request.session.authId)
+		isLogOn = true;
 	console.log("real");
 	const data = {
 		logOn : isLogOn,
-		name : logOnId
+		name : request.session.authId
 	}
 	response.render('main', data, function(err, html){
 		response.send(html);
@@ -180,12 +206,13 @@ app.post('/real', function(request, response){
 })
 
 app.post('/realOut', function(request, response){
+	var isLogOn = false;
 	console.log("realOut");
 	console.log(request.body);
-	isLogOn = false;
+	delete request.session.authId; // 세션에 등록된 아이디 삭제
 	const data = {
 		logOn : isLogOn,
-		name : logOnId,
+		name : request.session.authId,
 	}
 	response.render('main', data, function(err, html){
 		response.send(html);
@@ -193,13 +220,16 @@ app.post('/realOut', function(request, response){
 })
 
 app.post('/search', function(request, response){
+	var isLogOn = false;
+	if(request.session.authId)
+		isLogOn = true;
 	console.log(request.body);
 	console.log("search");
 	searchText = null;
 	var testData = [];
 	const data = {
 		logOn : isLogOn,
-		name : logOnId,
+		name : request.session.authId,
 		datas : testData,
 		text : searchText
 	}
@@ -212,12 +242,13 @@ app.post('/search', function(request, response){
 app.post('/searchOut', function(request, response){
 	console.log(request.body);
 	console.log("searchOut");
-	isLogOn = false;
+	var isLogOn = false;
 	searchText = null;
+	delete request.session.authId; // 세션에 등록된 아이디 삭제
 	var testData = [];
 	const data = {
 		logOn : isLogOn,
-		name : logOnId,
+		name : request.session.authId,
 		datas : testData,
 		text : searchText
 	}
@@ -227,6 +258,9 @@ app.post('/searchOut', function(request, response){
 })
 
 app.post('/searchRequest', function(request, response){
+	var isLogOn = false;
+	if(request.session.authId)
+		isLogOn = true;
 	console.log(request.body);
 	console.log("searchRequest");
 	searchText = request.body.searchText;
@@ -234,7 +268,7 @@ app.post('/searchRequest', function(request, response){
 	RequestSerach(request.body, testData, function(){
 		const data = {
 			logOn : isLogOn,
-			name : logOnId,
+			name : request.session.authId,
 			datas : testData,
 			text : searchText
 		}
@@ -246,10 +280,11 @@ app.post('/searchRequest', function(request, response){
 
 app.post('/alarmOut', function(request, response){
 	console.log("alarmOut");
-	isLogOn = false;
+	var isLogOn = false;
+	delete request.session.authId; // 세션에 등록된 아이디 삭제
 	const data = {
 		logOn : isLogOn,
-		name : logOnId,
+		name : request.session.authId,
 		word : null,
 		period : 0
 	}
@@ -259,16 +294,19 @@ app.post('/alarmOut', function(request, response){
 })
 
 app.post('/alarmAdd', function(request, response){
+	var isLogOn = false;
+	if(request.session.authId)
+		isLogOn = true;
 	console.log("alarmAdd");
 	console.log(request.body);
 	var periodToint = Number(request.body.inputPeriod.substring(0, request.body.inputPeriod.length - 1));
 	const data = {
 		logOn : isLogOn,
-		name : logOnId,
+		name : request.session.authId,
 		word : request.body.inputWord,
 		period : periodToint
 	}
-	AlarmAddQuery(logOnId, request.body.inputWord, request.body.inputPeriod, function(){
+	AlarmAddQuery(request.session.authId, request.body.inputWord, request.body.inputPeriod, function(){
 		response.render('alarm', data, function(err, html){
 			response.send(html);
 			StopCheckLoop();
@@ -279,15 +317,18 @@ app.post('/alarmAdd', function(request, response){
 });
 
 app.post('/alarmRemove', function(request, response){
+	var isLogOn = false;
+	if(request.session.authId)
+		isLogOn = true;
 	console.log("alarmRemove");
 	console.log(request.body);
 	const data = {
 		logOn : isLogOn,
-		name : logOnId,
+		name : request.session.authId,
 		word : null,
 		period : 0
 	}
-	AlarmWordDeleteQuery(logOnId, function(){
+	AlarmWordDeleteQuery(request.session.authId, function(){
 		response.render('alarm', data, function(err, html){
 			response.send(html);
 			StopCheckLoop();
@@ -427,7 +468,7 @@ function AlarmWordDeleteQuery(id, callback){
 	var sqlQuery = "UPDATE user SET word=NULL, period=NULL WHERE id= '" + id + "';";
 	connection.query(sqlQuery, function (err, result) {
 	    if (err) throw err;
-	    console.log(result);
+	    // console.log(result);
 	    callback();
 	});
 }
@@ -456,7 +497,7 @@ function CheckUserListForAlram(){
 			alarmUserList[i].leftPeriod = alarmUserList[i].period * 60;
 		}
 	}
-	console.log("CheckUserListForAlram");
+	// console.log("CheckUserListForAlram");
 	// console.log(alarmUserList);
 }
 

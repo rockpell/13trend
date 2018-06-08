@@ -128,7 +128,6 @@
     </style>
     
     <script>
-// var dataset = [{x:'A', y:9 }, {x:'B', y:19}, {x:'C', y:29}, {x:'D', y:39}, {x:'E', y:29}, {x:'F', y:19}, {x:'G', y:9 },{x: 'H', y:3}, {x: 'ZZ', y:48}, {x: 'ZA', y:50}, {x: 'ZB', y:51}, {x: 'ZC', y:52}, {x: 'ZD', y:53}, {x: 'ZF', y:83}];
 var dataset = <%- JSON.stringify(datas)%>;
 var svg = d3.select("svg");
 var width  = parseInt(svg.style("width"), 10)-30;
