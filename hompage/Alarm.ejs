@@ -9,10 +9,10 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="rockpell">
-    <link rel="icon" href="./no_title.png">
+    <link rel="icon" href="./no_title.png"> <!-- 페이지 아이콘 이미지 로드 -->
     <title>13Trend</title>
     <!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap.min.css" rel="stylesheet"> <!-- 부트스트랩 css 로드 -->
 </head>
 
 <body>
@@ -39,7 +39,7 @@
                         <a>Alarm</a>
                     </li>
                 </ul>
-                <% if(!logOn) {%>
+                <% if(!logOn) {%> <!-- 로그인 전에 나타나는 태그들 -->
                 <form class="navbar-form navbar-right" action="/signIn" method="POST">
                     <div class="form-group">
                         <input type="text" placeholder="ID" class="form-control" id="userId" name="userId" required="">
@@ -51,7 +51,7 @@
                     <a class="btn btn-success" href="./SignUp.html" role="button">Sign up</a>
                 </form>
                 <% }%>
-                <% if(logOn) {%>
+                <% if(logOn) {%> <!-- 로그인 후에 나타나는 태그들 -->
                 <form class="navbar-form navbar-right" action="/alarmOut" method="POST">
                     <div class="form-group">
                         <span class="label label-success">환영합니다 <%= name %>님</span>
@@ -68,7 +68,7 @@
         <div class="container">
             <h1>Alarm</h1>
             <h4>&nbsp; Mailing Service</h4>
-            <% if(logOn) {%>
+            <% if(logOn) {%> <!-- 로그인 후에 나타나는 태그들 -->
             <br>
             <h5>&nbsp; 하나의 문장만 등록 가능합니다</h5>
             <%}%>
@@ -77,7 +77,7 @@
     <div class="container">
         <!-- Example row of columns -->
         <div class="row">
-            <% if(logOn) {%>
+            <% if(logOn) {%> <!-- 로그인 후에 나타나는 태그들 -->
             <form class="form" action="/alarmAdd" method="POST">
                 <div class="form-group col-md-8">
                     <input class = "form-control" type="text" placeholder = "등록어 입력" id="inputWord" name="inputWord" required="">
@@ -97,11 +97,11 @@
                 </div>
             </form>
             <%}%>
-            <% if(!logOn) {%>
+            <% if(!logOn) {%> <!-- 로그인 전에 나타나는 태그 -->
                 <h3>로그인 후 이용해주세요</h3>
             <%}%>
         </div>
-        <% if(period > 0){%>
+        <% if(period > 0){%> <!-- 등록된 단어가 있을 경우 나타나는 태그 -->
         <div class="row">
             <form class="form" action="/alarmRemove" method="POST">
                 <div class="col-md-6">
@@ -118,12 +118,13 @@
         <%}%>
         <hr>
         <footer>
+            <p>Questions : aythffk@gmail.com</p>
             <p>© 13Trend</p>
         </footer>
     </div>
     <!-- /container -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script> <!-- jquery 로드 -->
+    <script src="js/bootstrap.min.js"></script> <!-- 부트스트랩js 로드 -->
     <style type="text/css">
         #AlarmJumbotron{
             margin-bottom: 0px;
