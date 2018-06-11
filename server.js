@@ -18,23 +18,23 @@ var server = app.listen(80, function(){ // 80포트를 허용한 웹서버를 �
     console.log("Express server has started on port 80")
 })
 
-// var connection = mysql.createConnection({
-// 	host     : 'localhost',
-// 	user     : 'root',
-// 	password : '5427',
-// 	database : 'mydb',
-// 	port : 3306,
-// 	charset : 'utf8'
-// });
-
-var connection = mysql.createConnection({ // mysql 서버와 연결을 위한 정보
-	host     : '35.192.50.205',
-	user     : 'rockpell',
+var connection = mysql.createConnection({
+	host     : 'localhost',
+	user     : 'root',
 	password : '5427',
 	database : 'mydb',
 	port : 3306,
 	charset : 'utf8'
 });
+
+// var connection = mysql.createConnection({ // mysql 서버와 연결을 위한 정보
+// 	host     : '35.192.50.205',
+// 	user     : 'rockpell',
+// 	password : '5427',
+// 	database : 'mydb',
+// 	port : 3306,
+// 	charset : 'utf8'
+// });
 
 var transporter = nodemailer.createTransport({ // 알람을 보내는 메일 등록
 	service: 'gmail',
@@ -149,6 +149,11 @@ app.get('/alarm', function(request, response){ // 클라이언트가 '/alarm' �
 	}
 });
 
+app.post('/signNext', function(request, response){
+	response.sendFile(__dirname+'/hompage/SignUp.html');
+});
+
+
 app.post('/signUp', function(request, response){ // 클라이언트가 '/signUp' 경로로 요청 했을때 반응
 	var isLogOn = false;
 	SignUpQuery(request.body.inputId, request.body.inputPassword, request.body.inputEmail);
@@ -166,10 +171,7 @@ app.post('/signIn', function(request, response){ // 클라이언트가 '/signIn'
 		const data = {
 			logOn : isSuccess,
 			name : request.body.userId
-		}
-		// isLogOn = isSuccess;
-		// logOnId = request.body.userId;
-		
+		}		
 		request.session.authId = request.body.userId;
 		request.session.save();
 
@@ -481,7 +483,7 @@ function CheckRealTimeKeywordList(target){ // 현재 실시간 검색어 순위�
 
 function SendMail(userMail, wordText, rank){ // 메일을 보내는 함수
 	var mailOptions = {
-		from: 'pyg100794@gmail.com',
+		from: 'aythffk@gmail.com',
 		to: userMail,
 		subject: "등록하신 단어가 실시간 검색 순위에 올랐습니다.",
 		text: "실시간 검색어 " + rank + " 위: " + wordText + "\n http://13trend.oa.to"
@@ -500,6 +502,7 @@ function PatchWordForAlarm(callback){ // 데이터베이스에 저장된 등록�
 	var sqlQuery = "SELECT id, email, word, period FROM user;"
 	connection.query(sqlQuery, function (err, result) {
 	    if (err) throw err;
+	    // console.log(result);
 	    for(var i = 0; i < Object.keys(result).length; i++){
 	    	var index = ContainAlarmSetting(alarmUserList, result[i]);
       		if(result[i].period > 0){
@@ -517,7 +520,9 @@ function PatchWordForAlarm(callback){ // 데이터베이스에 저장된 등록�
       				alarmUserList[index].leftPeriod = result[i].period * 60;
       			}
       		} else {
-      			alarmUserList.splice(index, 1);
+      			if(index != -1){
+	      			alarmUserList.splice(index, 1);
+      			}
       		}
 	    }
 	    callback();

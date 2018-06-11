@@ -21,8 +21,8 @@ var connection = mysql.createConnection({
 // var sqlQuery = "INSERT INTO user (id, password, email) VALUES ('rockpell', '1134', 'ffk@gmail.com')";
 // var sqlQuery = "UPDATE user SET word='아주긴 문자열이 필요한데 뭐가 좋을까', period=10 WHERE id='rockpell';";
 // var sqlQuery = "SELECT id, word, period FROM user;"
-// var sqlQuery = "SELECT * FROM user;"
-var sqlQuery = "describe user;";
+var sqlQuery = "SELECT * FROM user;"
+// var sqlQuery = "describe user;";
 // var sqlQuery = "UPDATE user SET word=NULL, period=NULL WHERE id='rockpell';"
 // var sqlQuery = "DELETE FROM user;"
 
